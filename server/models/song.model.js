@@ -81,25 +81,21 @@ SongSchema.methods.toggleLike = async function (userId) {
   const User = mongoose.model('User');
   const user = await User.findById(userId);
 
-  // Check if user already liked this song
   const indexInLikes = this.likes.indexOf(userId);
-  
-  if (indexInLikes === -1) {
-    // Add to song likes
-    this.likes.push(userId);
-  } else {
-    // Remove from song likes
-    this.likes.splice(indexInLikes, 1);
-  }
-  
-  // Update user favorites
   const indexInFavorites = user.favorites.indexOf(this._id);
-  if (indexInFavorites === -1 && indexInLikes === -1) {
-    // Add to favorites if not there and we're adding a like
-    user.favorites.push(this._id);
-  } else if (indexInFavorites !== -1 && indexInLikes !== -1) {
-    // Remove from favorites if there and we're removing a like
-    user.favorites.splice(indexInFavorites, 1);
+
+  if (indexInLikes === -1) {
+    // Like
+    this.likes.push(userId);
+    if (indexInFavorites === -1) {
+      user.favorites.push(this._id);
+    }
+  } else {
+    // Unlike
+    this.likes.splice(indexInLikes, 1);
+    if (indexInFavorites !== -1) {
+      user.favorites.splice(indexInFavorites, 1);
+    }
   }
 
   await user.save();
